@@ -10,6 +10,11 @@ A compact quick reference card (single sheet of paper, double sided) for the RV3
 This copies liberally from [jameslzhu/riscv-card](https://github.com/jameslzhu/riscv-card) and is licensed under [CC-BY-4.0](LICENSE).
 
 
+## Download
+
+If you just want the PDF file you can [download it by clicking here](https://raw.githubusercontent.com/russross/riscv-card/main/riscv-card.pdf).
+
+
 ## Build
 
 ```sh
