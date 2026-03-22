@@ -79,7 +79,7 @@
     table.hline(),
 
     // I-type arithmetic
-    [addi], [add immediate], [I], [#pad-ex("addi", "a0, a1, 2")], [a0 = a1 + 2], [],
+    [addi], [add immediate], [I], [#pad-ex("addi", "a0, a1, -2")], [a0 = a1 + -2], [],
     [xori], [xor immediate], [I], [#pad-ex("xori", "a0, a1, 2")], [a0 = a1 ^ 2], [],
     [ori], [or immediate], [I], [#pad-ex("ori", "a0, a1, 2")], [a0 = a1 | 2], [],
     [andi], [and immediate], [I], [#pad-ex("andi", "a0, a1, 2")], [a0 = a1 & 2], [],
@@ -91,8 +91,8 @@
     table.hline(),
 
     // instructions
-    [li], [load immediate], [], [#pad-ex("li", "a0, 2")], [addi a0, zero, 2], [_pseudo_],
-    [la], [load address], [], [#pad-ex("la", "a0, symbol")], [a0 = symbol], [_pseudo_],
+    [li], [load immediate], [], [#pad-ex("li", "a0, 2")], [addi a0, zero, 2], [_pseudo_, multiple encodings],
+    [la], [load address], [], [#pad-ex("la", "a0, symbol")], [a0 = symbol], [_pseudo_, multiple encodings],
     table.hline(),
 
     [mv], [move (copy)], [], [#pad-ex("mv", "a0, a1")], [addi a0, a1, 0], [_pseudo_],
@@ -118,8 +118,8 @@
     [beq], [branch if $=$], [B], [#pad-ex("beq", "a0, a1, label")], [if (a0 == a1) goto label], [],
     [bne], [branch if $≠$], [B], [#pad-ex("bne", "a0, a1, label")], [if (a0 != a1) goto label], [],
     [blt], [branch if $<$], [B], [#pad-ex("blt", "a0, a1, label")], [if (a0 < a1) goto label], [],
-    [ble], [branch if $≤$], [], [#pad-ex("ble", "a0, a1, label")], [if (a0 <= a1) goto label], [_pseudo_ (bge a1, a0, label)],
-    [bgt], [branch if $>$], [], [#pad-ex("bgt", "a0, a1, label")], [if (a0 > a1) goto label], [_pseudo_ (blt a1, a0, label)],
+    [ble], [branch if $≤$], [], [#pad-ex("ble", "a0, a1, label")], [if (a0 <= a1) goto label], [_pseudo_ (`bge a1, a0, label`)],
+    [bgt], [branch if $>$], [], [#pad-ex("bgt", "a0, a1, label")], [if (a0 > a1) goto label], [_pseudo_ (`blt a1, a0, label`)],
     [bge], [branch if $≥$], [B], [#pad-ex("bge", "a0, a1, label")], [if (a0 >= a1) goto label], [],
     [bltu], [branch if $<$ (u)], [B], [#pad-ex("bltu", "a0, a1, label")], [if (a0 < a1) goto label], [unsigned],
     [bleu], [branch if $≤$ (u)], [], [#pad-ex("bleu", "a0, a1, label")], [if (a0 <= a1) goto label], [unsigned, _pseudo_],
@@ -128,7 +128,7 @@
     table.hline(),
 
     // Branch zero instructions
-    [beqz], [branch if $= 0$], [], [#pad-ex("beqz", "a0, label")], [if (a0 == 0) goto label], [_pseudo_],
+    [beqz], [branch if $= 0$], [], [#pad-ex("beqz", "a0, label")], [if (a0 == 0) goto label], [_pseudo_ using `zero` register],
     [bnez], [branch if $≠ 0$], [], [#pad-ex("bnez", "a0, label")], [if (a0 != 0) goto label], [_pseudo_],
     [bltz], [branch if $< 0$], [], [#pad-ex("bltz", "a0, label")], [if (a0 < 0) goto label], [_pseudo_],
     [blez], [branch if $≤ 0$], [], [#pad-ex("blez", "a0, label")], [if (a0 <= 0) goto label], [_pseudo_],
@@ -139,14 +139,14 @@
     // Jump instructions
     [jal], [jump and link], [J], [#pad-ex("jal", "ra, label")], [ra = pc + 4; jump to label], [],
     [jalr], [jump and link reg], [I], [#pad-ex("jalr", "ra, 0(a1)")], [ra = pc + 4; jump to a1], [],
-    [j], [jump], [], [#pad-ex("j", "label")], [jump to label], [_pseudo_],
-    [call], [call subroutine], [], [#pad-ex("call", "label")], [ra = pc + 4; jump to label], [_pseudo_],
-    [ret], [return], [], [#pad-ex("ret", "")], [jump to address in ra], [_pseudo_],
+    [j], [jump], [], [#pad-ex("j", "label")], [jump to label], [_pseudo_, based on `jal`],
+    [call], [call subroutine], [], [#pad-ex("call", "label")], [ra = pc + 4; jump to label], [_pseudo_, multiple encodings],
+    [ret], [return], [], [#pad-ex("ret", "")], [jump to address in ra], [_pseudo_, based on `jalr`],
     table.hline(),
 
     // Upper immediate
-    [lui], [load upper imm], [U], [#pad-ex("lui", "a0, 1234")], [a0 = 1234 << 12], [],
-    [auipc], [add upper imm to pc], [U], [#pad-ex("auipc", "a0, 1234")], [a0 = pc + (1234 << 12)], [],
+    [lui], [load upper imm], [U], [#pad-ex("lui", "a0, 1234")], [a0 = 1234 << 12], [20-bit immediate],
+    [auipc], [add upper imm to pc], [U], [#pad-ex("auipc", "a0, 1234")], [a0 = pc + (1234 << 12)], [20-bit immediate],
     table.hline(),
 
     // System instructions
@@ -168,7 +168,7 @@
     // Multiply instructions
     [mul], [multiply], [R], [#pad-ex("mul", "a0, a1, a2")], [a0 = (a1 × a2)\[31:0\]], [lower 32 bits],
     [mulh], [multiply high signed], [R], [#pad-ex("mulh", "a0, a1, a2")], [a0 = (a1 × a2)\[63:32\]], [upper bits, signed],
-    [mulhsu], [multiply high signed×unsigned], [R], [#pad-ex("mulhsu", "a0, a1, a2")], [a0 = (a1 × a2)\[63:32\]], [a1 signed, a2 unsigned],
+    [mulhsu], [multiply high signed×unsigned], [R], [#pad-ex("mulhsu", "a0, a1, a2")], [a0 = (a1 × a2)\[63:32\]], [`a1` signed, `a2` unsigned],
     [mulhu], [multiply high unsigned], [R], [#pad-ex("mulhu", "a0, a1, a2")], [a0 = (a1 × a2)\[63:32\]], [upper bits, unsigned],
     table.hline(),
 
